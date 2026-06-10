@@ -1,0 +1,30 @@
+name: Socket Security Scan
+
+on:
+  pull_request:
+    branches:
+      - master
+      - main
+
+jobs:
+  socket-security:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Socket CLI
+        run: |
+          pip install socketsecurity
+
+      - name: Run Socket Scan
+        env:
+          SOCKET_SECURITY_API_KEY: ${{ secrets.SOCKET_SECURITY_API_KEY }}
+        run: |
+          socketcli --help
