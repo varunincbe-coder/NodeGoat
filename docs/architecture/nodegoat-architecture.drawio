@@ -1,0 +1,48 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="RHMHkZgQjJjBNTOFyjDy">
+    <mxGraphModel dx="1175" dy="1743" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="Ozv0Q_P5_pnVDhZ1WZmN-8" edge="1" parent="1" source="Ozv0Q_P5_pnVDhZ1WZmN-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;dashed=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="Ozv0Q_P5_pnVDhZ1WZmN-3">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="420" y="190" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Ozv0Q_P5_pnVDhZ1WZmN-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="50" width="120" x="360" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="Ozv0Q_P5_pnVDhZ1WZmN-2" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="User / Browser" vertex="1">
+          <mxGeometry height="30" width="100" x="370" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Ozv0Q_P5_pnVDhZ1WZmN-7" connectable="0" parent="1" style="group" value="" vertex="1">
+          <mxGeometry height="110" width="190" x="325" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="Ozv0Q_P5_pnVDhZ1WZmN-3" parent="Ozv0Q_P5_pnVDhZ1WZmN-7" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="110" width="190" as="geometry" />
+        </mxCell>
+        <mxCell id="Ozv0Q_P5_pnVDhZ1WZmN-4" parent="Ozv0Q_P5_pnVDhZ1WZmN-7" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="NodeGoat Web App&lt;div&gt;&lt;br&gt;&lt;div&gt;Node.js + Express.js&lt;/div&gt;&lt;div&gt;Docker service:web&amp;nbsp;&lt;/div&gt;&lt;div&gt;port:4000&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="30" width="165" x="12.5" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="Ozv0Q_P5_pnVDhZ1WZmN-10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;container=1;" value="" vertex="1">
+          <mxGeometry height="90" width="190" x="325" y="410" as="geometry" />
+        </mxCell>
+        <mxCell id="Ozv0Q_P5_pnVDhZ1WZmN-11" parent="Ozv0Q_P5_pnVDhZ1WZmN-10" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="MongoDB&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Docker service:mongo&lt;/div&gt;&lt;div&gt;Database: nodegoat&lt;/div&gt;&lt;div&gt;port: 27017&lt;/div&gt;" vertex="1">
+          <mxGeometry height="30" width="190" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="Ozv0Q_P5_pnVDhZ1WZmN-12" edge="1" parent="1" source="Ozv0Q_P5_pnVDhZ1WZmN-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;dashed=1;" target="Ozv0Q_P5_pnVDhZ1WZmN-10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Ozv0Q_P5_pnVDhZ1WZmN-13" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="External / User Zone" vertex="1">
+          <mxGeometry height="30" width="140" x="350" y="-20" as="geometry" />
+        </mxCell>
+        <mxCell id="Ozv0Q_P5_pnVDhZ1WZmN-14" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Trusted Boundary 1" vertex="1">
+          <mxGeometry height="30" width="152.5" x="425" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="Ozv0Q_P5_pnVDhZ1WZmN-15" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Trusted Boundary 2" vertex="1">
+          <mxGeometry height="30" width="152.5" x="430" y="360" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
