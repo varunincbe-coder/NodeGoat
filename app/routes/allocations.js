@@ -20,6 +20,13 @@ function AllocationsHandler(db) {
             threshold
         } = req.query;
 
+        // Fix for A1 NoSQL Injection - the threshold must be a whole number between 0 and 99
+        if (threshold !== undefined && threshold !== "") {
+            if (typeof threshold !== "string" || !/^\d{1,2}$/.test(threshold)) {
+                return res.status(400).send("Invalid threshold value");
+            }
+        }
+
         allocationsDAO.getByUserIdAndThreshold(userId, threshold, (err, allocations) => {
             if (err) return next(err);
             return res.render("allocations", {
