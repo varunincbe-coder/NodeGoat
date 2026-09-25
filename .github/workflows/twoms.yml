@@ -16,7 +16,7 @@ jobs:
       - name: Run 2MS Scan
         run: |
           mkdir -p artifacts
-          docker run -v $(pwd):/repo checkmarx/2ms:2.8.1 \
+          docker run -v $(pwd):/repo checkmarx/2ms:5.4.0 \
             --ignore-on-exit results \
             --report-path /repo/artifacts/twoms.sarif \
             git /repo
