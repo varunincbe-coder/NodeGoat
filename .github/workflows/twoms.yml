@@ -29,23 +29,31 @@ jobs:
             checkmarx/2ms \
             filesystem \
             --path /repo \
+            --stdout-format sarif \
             --report-path /output/2ms.sarif \
             --ignore-on-exit results
 
-      - name: Verify 2MS report
+      - name: Inspect 2MS SARIF
         if: always()
         run: |
-          echo "2MS output:"
+          echo "=== 2MS directory ==="
           ls -lah "$RUNNER_TEMP/2ms"
 
-          echo "SARIF files:"
+          echo "=== SARIF files ==="
           find "$RUNNER_TEMP/2ms" -type f -name "*.sarif" -print
 
-          test -f "$RUNNER_TEMP/2ms/2ms.sarif"
+          echo "=== SARIF size ==="
+          wc -c "$RUNNER_TEMP/2ms/2ms.sarif"
+
+      - name: Copy SARIF into workspace
+        if: always()
+        run: |
+          cp "$RUNNER_TEMP/2ms/2ms.sarif" ./2ms.sarif
+          ls -lh ./2ms.sarif
 
       - name: Upload 2MS SARIF
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: ${{ runner.temp }}/2ms/2ms.sarif
-          category: 2ms-filesystem
+          sarif_file: 2ms.sarif
+          category: 2ms
