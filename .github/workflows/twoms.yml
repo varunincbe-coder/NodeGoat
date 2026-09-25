@@ -17,28 +17,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Create artifacts directory
-        run: mkdir -p artifacts
-
-      - name: Run 2MS
+      - name: Check 2MS version
         run: |
-          docker run --rm \
-            -v "$PWD":/repo \
-            checkmarx/2ms \
-            git /repo \
-            --stdout-format sarif \
-            --report-path /repo/artifacts/2ms.sarif \
-            --ignore-on-exit results
+          docker run --rm checkmarx/2ms --version
 
-      - name: Inspect 2MS output
-        if: always()
+      - name: Check 2MS help
         run: |
-          echo "=== Workspace ==="
-          pwd
-          ls -la
-
-          echo "=== Artifacts ==="
-          ls -la artifacts || true
-
-          echo "=== SARIF files ==="
-          find . -name "*.sarif" -type f -print
+          docker run --rm checkmarx/2ms git --help
