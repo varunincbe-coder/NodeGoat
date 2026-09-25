@@ -1,0 +1,24 @@
+name: SAST Security Scan
+
+on:
+  push:
+    branches:
+      - member-1
+      - master
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  semgrep:
+    name: Semgrep SAST Security Gate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Semgrep
+        run: pip install semgrep
+
+      - name: Run Semgrep Security Gate
+        run: semgrep scan --config auto --error .
