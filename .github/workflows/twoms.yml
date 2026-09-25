@@ -33,6 +33,8 @@ jobs:
             --report-path /output/2ms.sarif \
             --ignore-on-exit results
 
+
+
       - name: Inspect 2MS SARIF
         if: always()
         run: |
@@ -50,6 +52,39 @@ jobs:
         run: |
           cp "$RUNNER_TEMP/2ms/2ms.sarif" ./2ms.sarif
           ls -lh ./2ms.sarif
+
+      - name: Inspect 2MS findings
+        if: always()
+        run: |
+          python - <<'PY'
+          import json
+      
+          with open("2ms.sarif", "r") as f:
+              data = json.load(f)
+      
+          for run in data.get("runs", []):
+              tool = run.get("tool", {}).get("driver", {})
+              results = run.get("results", [])
+      
+              print("=== 2MS SARIF ===")
+              print("Tool:", tool.get("name"))
+              print("Rules:", len(tool.get("rules", [])))
+              print("Results:", len(results))
+      
+              for i, result in enumerate(results, 1):
+                  print(f"\nFinding {i}")
+                  print("Rule:", result.get("ruleId"))
+                  print("Message:", result.get("message", {}).get("text"))
+      
+                  locations = result.get("locations", [])
+                  for location in locations:
+                      physical = location.get("physicalLocation", {})
+                      artifact = physical.get("artifactLocation", {})
+                      region = physical.get("region", {})
+      
+                      print("File:", artifact.get("uri"))
+                      print("Line:", region.get("startLine"))
+          PY
 
       - name: Upload 2MS SARIF
         if: always()
