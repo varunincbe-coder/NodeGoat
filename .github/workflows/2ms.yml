@@ -1,0 +1,37 @@
+name: 2MS - Secret Scan
+
+on:
+  workflow_dispatch:
+
+jobs:
+  twoms:
+    name: 2MS Scan
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run 2MS
+        run: |
+          mkdir -p artifacts
+
+          docker run --rm \
+            -v "$PWD":/repo \
+            checkmarx/2ms \
+            git /repo \
+            --stdout-format sarif \
+            --report-path /repo/artifacts/2ms.sarif \
+            --ignore-on-exit results
+
+      - name: Upload 2MS SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: artifacts/2ms.sarif
