@@ -1,0 +1,27 @@
+name: Vorpal - Secure Coding Scan
+
+on:
+  workflow_dispatch:
+
+jobs:
+  vorpal:
+    name: Vorpal Scan
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      checks: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Vorpal
+        uses: checkmarx/vorpal-reviewdog-github-action@v1.0.0
+        with:
+          source_path: .
+          filter_mode: file
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: github-pr-check
+          level: error
+          fail_on_error: false
