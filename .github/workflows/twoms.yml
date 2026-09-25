@@ -26,14 +26,16 @@ jobs:
           docker run --rm \
             -v "$PWD":/repo:ro \
             -v "$RUNNER_TEMP/2ms":/output \
-            checkmarx/2ms \
+            checkmarx/2ms:5.3.0 \
             filesystem \
             --path /repo \
             --stdout-format sarif \
             --report-path /output/2ms.sarif \
             --ignore-on-exit results
 
-
+      - name: Show 2MS version
+        run: |
+          docker run --rm checkmarx/2ms:5.3.0 --version
 
       - name: Inspect 2MS SARIF
         if: always()
