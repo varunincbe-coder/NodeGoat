@@ -24,7 +24,6 @@ jobs:
           mkdir -p artifacts
           docker run --rm -v "$PWD":/repo --user "$(id -u):$(id -g)" -e HOME=/tmp checkmarx/2ms \
             git /repo \
-            --disable-console-report \
             --report-path /repo/artifacts/2ms.json \
             --ignore-on-exit results
 
