@@ -11,13 +11,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          # Required for 2ms to have visibility to all commit history
           fetch-depth: 0
 
       - name: Run 2MS Scan
         run: |
           mkdir -p artifacts
-          docker run -v $(pwd):/repo checkmarx/2ms:latest git /repo --report-path /repo/artifacts/twoms.sarif
+          docker run -v $(pwd):/repo checkmarx/2ms:2.8.1 \
+            --ignore-on-exit results \
+            --report-path /repo/artifacts/twoms.sarif \
+            git /repo
 
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v3
