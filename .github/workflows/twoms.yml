@@ -15,8 +15,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Create 2MS report directory
         run: |
@@ -29,19 +27,15 @@ jobs:
             -v "$PWD":/repo:ro \
             -v "$RUNNER_TEMP/2ms":/output \
             checkmarx/2ms \
-            git /repo \
+            filesystem \
+            --path /repo \
             --report-path /output/2ms.sarif \
             --ignore-on-exit results
 
-      - name: Check 2MS report
+      - name: Verify 2MS report
         if: always()
         run: |
-          echo "2MS output directory:"
-          ls -lah "$RUNNER_TEMP/2ms"
-
-          echo "SARIF files:"
-          find "$RUNNER_TEMP/2ms" -type f -name "*.sarif" -print
-
+          ls -lh "$RUNNER_TEMP/2ms"
           test -f "$RUNNER_TEMP/2ms/2ms.sarif"
 
       - name: Upload 2MS SARIF
