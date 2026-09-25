@@ -18,25 +18,29 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Create report directory
-        run: mkdir -p artifacts
-
       - name: Run 2MS
         run: |
           docker run --rm \
             -v "$PWD":/repo \
             checkmarx/2ms \
             git /repo \
-            --report-path /repo/artifacts/2ms.sarif \
+            --report-path /repo/2ms.sarif \
             --ignore-on-exit results
 
-      - name: Verify SARIF report
+      - name: Check 2MS report
+        if: always()
         run: |
-          ls -lah artifacts/
-          test -f artifacts/2ms.sarif
+          echo "Current directory:"
+          pwd
+
+          echo "Files in workspace:"
+          ls -lah
+
+          echo "Looking for SARIF:"
+          find . -name "*.sarif" -type f -print
 
       - name: Upload 2MS SARIF
         if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: artifacts/2ms.sarif
+          sarif_file: 2ms.sarif
