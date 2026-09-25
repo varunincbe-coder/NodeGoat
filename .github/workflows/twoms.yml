@@ -35,7 +35,12 @@ jobs:
       - name: Verify 2MS report
         if: always()
         run: |
-          ls -lh "$RUNNER_TEMP/2ms"
+          echo "2MS output:"
+          ls -lah "$RUNNER_TEMP/2ms"
+
+          echo "SARIF files:"
+          find "$RUNNER_TEMP/2ms" -type f -name "*.sarif" -print
+
           test -f "$RUNNER_TEMP/2ms/2ms.sarif"
 
       - name: Upload 2MS SARIF
@@ -43,3 +48,4 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: ${{ runner.temp }}/2ms/2ms.sarif
+          category: 2ms-filesystem
