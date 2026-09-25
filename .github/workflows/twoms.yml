@@ -10,6 +10,7 @@ jobs:
 
     permissions:
       contents: read
+      security-events: write
 
     steps:
       - name: Checkout repository
@@ -17,10 +18,25 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Check 2MS version
-        run: |
-          docker run --rm checkmarx/2ms --version
+      - name: Create report directory
+        run: mkdir -p artifacts
 
-      - name: Check 2MS help
+      - name: Run 2MS
         run: |
-          docker run --rm checkmarx/2ms git --help
+          docker run --rm \
+            -v "$PWD":/repo \
+            checkmarx/2ms \
+            git /repo \
+            --report-path /repo/artifacts/2ms.sarif \
+            --ignore-on-exit results
+
+      - name: Verify SARIF report
+        run: |
+          ls -lah artifacts/
+          test -f artifacts/2ms.sarif
+
+      - name: Upload 2MS SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: artifacts/2ms.sarif
