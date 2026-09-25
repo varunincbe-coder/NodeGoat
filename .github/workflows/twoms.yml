@@ -18,28 +18,34 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Create 2MS report directory
+        run: |
+          mkdir -p "$RUNNER_TEMP/2ms"
+          chmod 777 "$RUNNER_TEMP/2ms"
+
       - name: Run 2MS
         run: |
           docker run --rm \
             -v "$PWD":/repo:ro \
+            -v "$RUNNER_TEMP/2ms":/output \
             checkmarx/2ms \
             git /repo \
-            --stdout-format sarif \
-            --ignore-on-exit results \
-            > 2ms.sarif
+            --report-path /output/2ms.sarif \
+            --ignore-on-exit results
 
       - name: Check 2MS report
         if: always()
         run: |
-          echo "SARIF file:"
-          ls -lh 2ms.sarif
-          echo "SARIF size:"
-          wc -c 2ms.sarif
-          echo "First 20 lines:"
-          head -20 2ms.sarif
+          echo "2MS output directory:"
+          ls -lah "$RUNNER_TEMP/2ms"
+
+          echo "SARIF files:"
+          find "$RUNNER_TEMP/2ms" -type f -name "*.sarif" -print
+
+          test -f "$RUNNER_TEMP/2ms/2ms.sarif"
 
       - name: Upload 2MS SARIF
         if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: 2ms.sarif
+          sarif_file: ${{ runner.temp }}/2ms/2ms.sarif
