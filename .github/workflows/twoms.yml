@@ -15,8 +15,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Create 2MS report directory
+      - name: Create report directory
         run: |
           mkdir -p "$RUNNER_TEMP/2ms"
           chmod 777 "$RUNNER_TEMP/2ms"
@@ -26,69 +28,53 @@ jobs:
           docker run --rm \
             -v "$PWD":/repo:ro \
             -v "$RUNNER_TEMP/2ms":/output \
-            checkmarx/2ms:4.9.0 \
-            filesystem \
-            --path /repo \
+            checkmarx/2ms \
+            git /repo \
             --stdout-format sarif \
             --report-path /output/2ms.sarif \
             --ignore-on-exit results
 
-      - name: Show 2MS version
-        run: |
-          docker run --rm checkmarx/2ms:4.9.0 --version
-
-      - name: Inspect 2MS SARIF
-        if: always()
-        run: |
-          echo "=== 2MS directory ==="
-          ls -lah "$RUNNER_TEMP/2ms"
-
-          echo "=== SARIF files ==="
-          find "$RUNNER_TEMP/2ms" -type f -name "*.sarif" -print
-
-          echo "=== SARIF size ==="
-          wc -c "$RUNNER_TEMP/2ms/2ms.sarif"
-
-      - name: Copy SARIF into workspace
+      - name: Copy SARIF
         if: always()
         run: |
           cp "$RUNNER_TEMP/2ms/2ms.sarif" ./2ms.sarif
-          ls -lh ./2ms.sarif
 
-      - name: Inspect 2MS findings
+      - name: Inspect SARIF
         if: always()
         run: |
           python - <<'PY'
           import json
-      
-          with open("2ms.sarif", "r") as f:
+
+          with open("2ms.sarif") as f:
               data = json.load(f)
-      
+
+          print("SARIF version:", data.get("version"))
+
           for run in data.get("runs", []):
-              tool = run.get("tool", {}).get("driver", {})
+              driver = run.get("tool", {}).get("driver", {})
               results = run.get("results", [])
-      
-              print("=== 2MS SARIF ===")
-              print("Tool:", tool.get("name"))
-              print("Rules:", len(tool.get("rules", [])))
+
+              print("Tool:", driver.get("name"))
+              print("Rules:", len(driver.get("rules", [])))
               print("Results:", len(results))
-      
-              for i, result in enumerate(results, 1):
-                  print(f"\nFinding {i}")
+
+              for result in results:
+                  print()
                   print("Rule:", result.get("ruleId"))
                   print("Message:", result.get("message", {}).get("text"))
-      
-                  locations = result.get("locations", [])
-                  for location in locations:
-                      physical = location.get("physicalLocation", {})
-                      artifact = physical.get("artifactLocation", {})
-                      region = physical.get("region", {})
-      
-                      print("File:", artifact.get("uri"))
-                      print("Line:", region.get("startLine"))
+
+                  for location in result.get("locations", []):
+                      artifact = (
+                          location
+                          .get("physicalLocation", {})
+                          .get("artifactLocation", {})
+                      )
+
+                      print("URI:", artifact.get("uri"))
+                      print("URI base:", artifact.get("uriBaseId"))
           PY
 
-      - name: Upload 2MS SARIF
+      - name: Upload SARIF
         if: always()
         uses: github/codeql-action/upload-sarif@v4
         with:
