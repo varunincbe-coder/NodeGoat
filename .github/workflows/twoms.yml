@@ -21,23 +21,22 @@ jobs:
       - name: Run 2MS
         run: |
           docker run --rm \
-            -v "$PWD":/repo \
+            -v "$PWD":/repo:ro \
             checkmarx/2ms \
             git /repo \
-            --report-path /repo/2ms.sarif \
-            --ignore-on-exit results
+            --stdout-format sarif \
+            --ignore-on-exit results \
+            > 2ms.sarif
 
       - name: Check 2MS report
         if: always()
         run: |
-          echo "Current directory:"
-          pwd
-
-          echo "Files in workspace:"
-          ls -lah
-
-          echo "Looking for SARIF:"
-          find . -name "*.sarif" -type f -print
+          echo "SARIF file:"
+          ls -lh 2ms.sarif
+          echo "SARIF size:"
+          wc -c 2ms.sarif
+          echo "First 20 lines:"
+          head -20 2ms.sarif
 
       - name: Upload 2MS SARIF
         if: always()
