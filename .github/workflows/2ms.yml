@@ -27,11 +27,11 @@ jobs:
             checkmarx/2ms \
             git /repo \
             --stdout-format sarif \
-            --report-path /repo/artifacts/2ms.sarif \
+            --report-path /repo/artifacts/twoms.sarif \
             --ignore-on-exit results
 
       - name: Upload 2MS SARIF
         if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: artifacts/2ms.sarif
+          sarif_file: artifacts/twoms.sarif
