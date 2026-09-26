@@ -10,6 +10,27 @@ const sanitize = (s) => String(s == null ? '' : s)
   .replace(/\|/g, '\\|')
   .replace(/`/g, "'");
 
+// Splits a 2ms "source" like "git show <commit>:<path>" into its parts.
+const parseSource = (src) => {
+  const s = String(src || '');
+  const m = /^git show ([0-9a-f]+):(.+)$/.exec(s);
+  if (m) return { commit: m[1], path: m[2] };
+  const idx = s.indexOf(':');
+  return idx >= 0 ? { commit: '', path: s.slice(idx + 1) } : { commit: '', path: s };
+};
+
+// Formats a finding's location as "startLine:startColumn-endLine:endColumn".
+const formatLocation = (f) => {
+  if (f.startLine == null) return '';
+  let loc = `${f.startLine}:${f.startColumn != null ? f.startColumn : 0}`;
+  if (f.endLine != null && (f.endLine !== f.startLine || f.endColumn !== f.startColumn)) {
+    loc += `-${f.endLine}:${f.endColumn != null ? f.endColumn : 0}`;
+  }
+  return loc;
+};
+
+const shortHash = (s) => String(s == null ? '' : s).slice(0, 7);
+
 const lines = [];
 
 if (!fs.existsSync(reportPath)) {
@@ -89,6 +110,46 @@ if (!fs.existsSync(reportPath)) {
   lines.push('| --- | ---: |');
   for (const [k, c] of sortDesc(byVal)) lines.push(`| \`${sanitize(k)}\` | ${c} |`);
   lines.push('');
+
+  // Group findings by rule for the detailed listing.
+  const grouped = new Map();
+  for (const f of findings) {
+    const rule = f.ruleName || '?';
+    if (!grouped.has(rule)) grouped.set(rule, []);
+    grouped.get(rule).push(f);
+  }
+  const ruleOrder = [...grouped.keys()].sort((a, b) => {
+    const d = grouped.get(b).length - grouped.get(a).length;
+    return d !== 0 ? d : a.localeCompare(b);
+  });
+
+  lines.push('## Detailed findings');
+  lines.push('');
+  let n = 0;
+  for (const rule of ruleOrder) {
+    const list = grouped.get(rule);
+    const desc = (list[0] && list[0].ruleDescription) ? sanitize(list[0].ruleDescription) : '';
+    lines.push(`### ${sanitize(rule)} (${list.length})`);
+    if (desc) lines.push(`_${desc}_`);
+    lines.push('| # | File | Commit | Line:Col | Secret value | Severity | CVSS |');
+    lines.push('| --- | --- | --- | --- | --- | --- | ---: |');
+    list.sort((a, b) => {
+      const pa = parseSource(a.source).path;
+      const pb = parseSource(b.source).path;
+      if (pa !== pb) return pa.localeCompare(pb);
+      return (a.startLine || 0) - (b.startLine || 0);
+    });
+    for (const f of list) {
+      n += 1;
+      const { commit, path } = parseSource(f.source);
+      let val = sanitize(f.value || '');
+      if (val.length > 60) val = `${val.slice(0, 60)}...`;
+      const sev = sanitize(f.severity || '?');
+      const cvss = f.cvssScore != null ? f.cvssScore : '';
+      lines.push(`| ${n} | \`${sanitize(path)}\` | \`${shortHash(commit)}\` | ${formatLocation(f)} | \`${val}\` | ${sev} | ${cvss} |`);
+    }
+    lines.push('');
+  }
 }
 
 const text = `${lines.join('\n')}\n`;
