@@ -45,9 +45,6 @@ jobs:
             --report-path target/artifacts/2ms.sarif \
             --ignore-on-exit results
 
-      - name: Generate summary
-        run: node target/scripts/summarize_2ms.js target/artifacts/2ms.json
-
       - name: Upload 2MS SARIF (Code Scanning)
         if: always()
         uses: github/codeql-action/upload-sarif@v3
@@ -59,18 +56,5 @@ jobs:
         if: always()
         uses: reviewdog/action-setup@v1
 
-      - name: Post 2MS findings as annotations
-        if: always()
-        working-directory: target
-        env:
-          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          node scripts/2ms-to-reviewdog.js artifacts/2ms.json | \
-            reviewdog -efm="%f:%l:%c:%m" \
-              -name="2MS" \
-              -reporter=github-check \
-              -filter-mode=nofilter \
-              -level=error \
-              -fail-on-error=false
 
 
