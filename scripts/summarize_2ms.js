@@ -10,26 +10,19 @@ const sanitize = (s) => String(s == null ? '' : s)
   .replace(/\|/g, '\\|')
   .replace(/`/g, "'");
 
-// Splits a 2ms "source" like "git show <commit>:<path>" into its parts.
-const parseSource = (src) => {
-  const s = String(src || '');
-  const m = /^git show ([0-9a-f]+):(.+)$/.exec(s);
-  if (m) return { commit: m[1], path: m[2] };
-  const idx = s.indexOf(':');
-  return idx >= 0 ? { commit: '', path: s.slice(idx + 1) } : { commit: '', path: s };
-};
-
-// Formats a finding's location as "startLine:startColumn-endLine:endColumn".
-const formatLocation = (f) => {
-  if (f.startLine == null) return '';
-  let loc = `${f.startLine}:${f.startColumn != null ? f.startColumn : 0}`;
-  if (f.endLine != null && (f.endLine !== f.startLine || f.endColumn !== f.startColumn)) {
-    loc += `-${f.endLine}:${f.endColumn != null ? f.endColumn : 0}`;
+// Reads a field using the first available key (JSON uses camelCase; console YAML uses lowercase).
+const pick = (f, keys) => {
+  if (!f) return '';
+  for (const k of keys) {
+    if (f[k] != null && f[k] !== '') return f[k];
   }
-  return loc;
+  return '';
 };
 
-const shortHash = (s) => String(s == null ? '' : s).slice(0, 7);
+// Like sanitize, but does not escape '|' (used for values inside inline code spans).
+const cleanCode = (s) => String(s == null ? '' : s)
+  .replace(/[\r\n]+/g, ' ')
+  .replace(/`/g, "'");
 
 const lines = [];
 
@@ -114,9 +107,9 @@ if (!fs.existsSync(reportPath)) {
   // Group findings by rule for the detailed listing.
   const grouped = new Map();
   for (const f of findings) {
-    const rule = f.ruleName || '?';
-    if (!grouped.has(rule)) grouped.set(rule, []);
-    grouped.get(rule).push(f);
+    const ruleId = pick(f, ['ruleId', 'ruleid']) || pick(f, ['ruleName', 'rulename']) || '?';
+    if (!grouped.has(ruleId)) grouped.set(ruleId, []);
+    grouped.get(ruleId).push(f);
   }
   const ruleOrder = [...grouped.keys()].sort((a, b) => {
     const d = grouped.get(b).length - grouped.get(a).length;
@@ -126,27 +119,29 @@ if (!fs.existsSync(reportPath)) {
   lines.push('## Detailed findings');
   lines.push('');
   let n = 0;
-  for (const rule of ruleOrder) {
-    const list = grouped.get(rule);
-    const desc = (list[0] && list[0].ruleDescription) ? sanitize(list[0].ruleDescription) : '';
-    lines.push(`### ${sanitize(rule)} (${list.length})`);
-    if (desc) lines.push(`_${desc}_`);
-    lines.push('| # | File | Commit | Line:Col | Secret value | Severity | CVSS |');
-    lines.push('| --- | --- | --- | --- | --- | --- | ---: |');
+  for (const ruleId of ruleOrder) {
+    const list = grouped.get(ruleId);
+    const desc = list.length ? pick(list[0], ['ruleDescription', 'ruledescription']) : '';
+    const heading = desc ? `${sanitize(ruleId)} — ${sanitize(desc)}` : sanitize(ruleId);
+    lines.push(`### ${heading}`);
     list.sort((a, b) => {
-      const pa = parseSource(a.source).path;
-      const pb = parseSource(b.source).path;
-      if (pa !== pb) return pa.localeCompare(pb);
-      return (a.startLine || 0) - (b.startLine || 0);
+      const sa = pick(a, ['source']);
+      const sb = pick(b, ['source']);
+      if (sa !== sb) return sa.localeCompare(sb);
+      return (Number(pick(a, ['startLine', 'startline'])) || 0) - (Number(pick(b, ['startLine', 'startline'])) || 0);
     });
     for (const f of list) {
       n += 1;
-      const { commit, path } = parseSource(f.source);
-      let val = sanitize(f.value || '');
-      if (val.length > 60) val = `${val.slice(0, 60)}...`;
-      const sev = sanitize(f.severity || '?');
-      const cvss = f.cvssScore != null ? f.cvssScore : '';
-      lines.push(`| ${n} | \`${sanitize(path)}\` | \`${shortHash(commit)}\` | ${formatLocation(f)} | \`${val}\` | ${sev} | ${cvss} |`);
+      const id = pick(f, ['id']);
+      const source = pick(f, ['source']);
+      const sl = pick(f, ['startLine', 'startline']);
+      const el = pick(f, ['endLine', 'endline']);
+      let lc = cleanCode(pick(f, ['lineContent', 'linecontent']));
+      if (lc.length > 160) lc = `${lc.slice(0, 160)}...`;
+      lines.push(`${n}. **id:** \`${id}\``);
+      lines.push(`   - **source:** \`${cleanCode(source)}\``);
+      lines.push(`   - **startLine / endLine:** \`${sl}\` / \`${el}\``);
+      lines.push(`   - **lineContent:** \`${lc}\``);
     }
     lines.push('');
   }
