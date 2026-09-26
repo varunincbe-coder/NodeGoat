@@ -8,7 +8,6 @@ on:
 
 permissions:
   contents: read
-  security-events: write
 
 jobs:
   secret-scan:
@@ -25,12 +24,9 @@ jobs:
           mkdir -p artifacts
           docker run --rm -v "$PWD":/repo --user "$(id -u):$(id -g)" -e HOME=/tmp checkmarx/2ms \
             git /repo \
-            --stdout-format sarif \
-            --report-path /repo/artifacts/2ms.sarif \
+            --disable-console-report \
+            --report-path /repo/artifacts/2ms.json \
             --ignore-on-exit results
 
-      - name: Upload SARIF report
-        if: always()
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: artifacts/2ms.sarif
+      - name: Generate summary
+        run: node scripts/summarize_2ms.js artifacts/2ms.json
