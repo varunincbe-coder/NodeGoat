@@ -19,9 +19,15 @@ if (!fs.existsSync(reportPath)) {
 } else {
   const data = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
 
+  const raw = data.results || {};
   const findings = [];
-  for (const arr of Object.values(data.results || {})) {
-    findings.push(...arr);
+  if (Array.isArray(raw)) {
+    findings.push(...raw);
+  } else {
+    for (const arr of Object.values(raw)) {
+      if (Array.isArray(arr)) findings.push(...arr);
+      else findings.push(arr);
+    }
   }
 
   const total = data.totalSecretsFound != null ? data.totalSecretsFound : findings.length;
