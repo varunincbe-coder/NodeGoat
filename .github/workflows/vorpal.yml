@@ -1,6 +1,7 @@
 name: Vorpal - Secure Coding Scan
 
 on:
+  pull_request:
   workflow_dispatch:
 
 jobs:
@@ -11,15 +12,23 @@ jobs:
     permissions:
       contents: read
       checks: write
+      pull-requests: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v46
+        with:
+          separator: ','
+
       - name: Run Vorpal
+        if: ${{ steps.changed-files.outputs.all_changed_files != '' }}
         uses: checkmarx/vorpal-reviewdog-github-action@v1.0.0
         with:
-          source_path: .
+          source_path: "${{ steps.changed-files.outputs.all_changed_files }}"
           filter_mode: file
           github_token: ${{ secrets.GITHUB_TOKEN }}
           reporter: github-pr-check
