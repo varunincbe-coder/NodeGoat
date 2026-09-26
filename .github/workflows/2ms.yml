@@ -11,6 +11,8 @@ jobs:
     permissions:
       contents: read
       security-events: write
+      checks: write
+      pull-requests: write
 
     steps:
       - name: Checkout repository (target)
@@ -39,13 +41,35 @@ jobs:
         run: |
           mkdir -p target/artifacts
           /tmp/2ms git target \
-            --stdout-format sarif \
+            --report-path target/artifacts/2ms.json \
             --report-path target/artifacts/2ms.sarif \
             --ignore-on-exit results
 
-      - name: Upload 2MS SARIF
+      - name: Generate summary
+        run: node target/scripts/summarize_2ms.js target/artifacts/2ms.json
+
+      - name: Upload 2MS SARIF (Code Scanning)
         if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: target/artifacts/2ms.sarif
+          checkout_path: target
+
+      - name: Setup reviewdog
+        if: always()
+        uses: reviewdog/action-setup@v1
+
+      - name: Post 2MS findings as annotations
+        if: always()
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          node target/scripts/2ms-to-reviewdog.js target/artifacts/2ms.json | \
+            reviewdog -efm="%f:%l:%c:%m" \
+              -name="2MS" \
+              -reporter=github-check \
+              -filter-mode=nofilter \
+              -level=error \
+              -fail-on-error=false
+
 
