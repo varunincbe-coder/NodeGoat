@@ -13,23 +13,39 @@ jobs:
       security-events: write
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repository (target)
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          path: target
+
+      - name: Checkout 2MS source (with SARIF fix)
+        uses: actions/checkout@v4
+        with:
+          repository: varunincbe-coder/2ms-updated
+          ref: AST-000-fix-codecov
+          path: 2ms-src
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 2ms-src/go.mod
+
+      - name: Build 2MS
+        working-directory: 2ms-src
+        run: go build -o /tmp/2ms .
 
       - name: Run 2MS
         run: |
-          docker run --rm \
-            -v "$PWD":/repo \
-            varunincbe-coder/2ms-updated \
-            git /repo \
+          mkdir -p target/artifacts
+          /tmp/2ms git target \
             --stdout-format sarif \
-            --report-path /repo/artifacts/2ms.sarif \
+            --report-path target/artifacts/2ms.sarif \
             --ignore-on-exit results
 
       - name: Upload 2MS SARIF
         if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: artifacts/2ms.sarif
+          sarif_file: target/artifacts/2ms.sarif
+
